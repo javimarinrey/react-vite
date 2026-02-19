@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import axios from "axios";
+import type {UserProfile} from "../types/auth.ts";
+import {authApi} from "../services/axiosInstances.ts";
+import {handleApiError} from "../utils/errorHandler.ts";
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -17,28 +20,23 @@ const Login = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const controller = new AbortController();
+        //const controller = new AbortController();
 
         setError(null);
         setLoading(true);
 
         try {
-            // const response = await api.post('/auth/login',
-            //     { email, password },
-            //     { signal: controller.signal } // Pasamos la señal a Axios
-            // );
+            //const response = await authApi.post('/login', credentials)
             // const { token } = response.data;
-            const token = "token-1234"
-            login(token); // Guardamos en Context y LocalStorage
+            const user: UserProfile = {
+                email: email, id: "1", name: "Javi", role: "user"
+            }
+            login(user, "token-1234"); // Guardamos en Context y LocalStorage
             navigate('/'); // Vamos a la home
         } catch (err: any) {
-            if (axios.isCancel(err)) {
-                console.log('Petición cancelada');
-            } else if (err.code === 'ECONNABORTED') {
-                setError('El servidor tarda demasiado en responder. Reintenta.');
-            } else {
-                setError('Error de conexión o credenciales inválidas.');
-            }
+            // APLICACIÓN DEL MANEJADOR
+            const message = handleApiError(err);
+            setError(message);
         } finally {
             setLoading(false);
         }
